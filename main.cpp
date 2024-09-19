@@ -7,20 +7,17 @@
 
 // Definición de los tipos de tokens
 enum class TokenKind : char {
-    Identifier, KwFn, KwVoid, KwInt, KwBoolean, KwChar, KwString, 
-    Number, Lpar, Rpar, Lbrace, Rbrace, Colon, String, Eof, Unk,
-    AssignOp, AddOp, Eop, KwPrint // Nuevos tokens agregados, incluyendo AddOp
+    Identifier, FunctionKeyword, VoidKeyword, IntKeyword, BooleanKeyword, CharKeyword, StringKeyword,
+    Number, LeftParenthesis, RightParenthesis, LeftBrace, RightBrace, ColonSymbol, String, Eof, Unknown,
+    AssignOp, AddOp, Eop, PrintKeyword // Nuevos tokens agregados, incluyendo AddOp
 };
 
 // Mapa de palabras clave
 const std::unordered_map<std::string_view, TokenKind> keywords = {
-    {"fn", TokenKind::KwFn}, {"void", TokenKind::KwVoid}, 
-    {"integer", TokenKind::KwInt}, {"boolean", TokenKind::KwBoolean}, 
-    {"char", TokenKind::KwChar}, {"string", TokenKind::KwString}
+    {"fn", TokenKind::FunctionKeyword}, {"void", TokenKind::VoidKeyword},
+    {"integer", TokenKind::IntKeyword}, {"boolean", TokenKind::BooleanKeyword},
+    {"char", TokenKind::CharKeyword}, {"string", TokenKind::StringKeyword}
 };
-
-// Caracteres de un solo símbolo como tokens
-constexpr char singleCharTokens[] = {'\0', '(', ')', '{', '}', ':'};
 
 // Estructura para la ubicación del token en el archivo
 struct SourceLocation {
@@ -67,96 +64,101 @@ public:
     }
 
     Token getNextToken() {
-    char currentChar = eatNextChar();
+        char currentChar = eatNextChar();
 
-    // Ignorar espacios en blanco
-    while (std::isspace(currentChar)) 
-        currentChar = eatNextChar();
-    
-    SourceLocation tokenStartLocation{source->path, line, column};
-
-    // Detectar el fin del archivo
-    if (currentChar == '\0') {
-        return Token{tokenStartLocation, TokenKind::Eof};
-    }
-
-    // Revisar si es un token de un solo carácter
-    switch (currentChar) {
-        case '(': return Token{tokenStartLocation, TokenKind::Lpar};
-        case ')': return Token{tokenStartLocation, TokenKind::Rpar};
-        case '{': return Token{tokenStartLocation, TokenKind::Lbrace};
-        case '}': return Token{tokenStartLocation, TokenKind::Rbrace};
-        case ':': return Token{tokenStartLocation, TokenKind::Colon};
-        case '+': return Token{tokenStartLocation, TokenKind::AddOp}; // Operador suma
-        case '=': return Token{tokenStartLocation, TokenKind::AssignOp}; // Operador asignación
-        case '$': return Token{tokenStartLocation, TokenKind::Eop}; // Fin del programa
-    }
-
-    // Ignorar comentarios estilo Python (#)
-    if (currentChar == '#') {
-        while (peekNextChar() != '\n' && peekNextChar() != '\0') {
-            eatNextChar();  // Ignorar el comentario hasta el final de la línea
-        }
-        return getNextToken();  // Continuar después del comentario
-    }
-
-    // Identificar cadenas
-    if (currentChar == '\"') {
-        std::string value;
-        currentChar = eatNextChar();
-        while (currentChar != '\"' && currentChar != '\0') {
-            if (currentChar == '\\') { // Detectar caracteres de escape
-                char nextChar = eatNextChar();
-                switch (nextChar) {
-                    case 'n': value += '\n'; break;
-                    case 't': value += '\t'; break;
-                    default: value += nextChar; break;
-                }
-            } else {
-                value += currentChar;
-            }
+        // Ignorar espacios en blanco
+        while (std::isspace(currentChar)) 
             currentChar = eatNextChar();
-        }
-        return Token{tokenStartLocation, TokenKind::String, std::move(value)};
-    }
+    
+        SourceLocation tokenStartLocation{source->path, line, column};
 
-    // Identificar números
-    if (std::isdigit(currentChar)) {
-        std::string value{currentChar}; // Añadir el primer dígito
-        while (std::isdigit(peekNextChar())) {
-            value += eatNextChar(); // Acumular los dígitos
-        }
-        return Token{tokenStartLocation, TokenKind::Number, std::move(value)};
-    }
-
-    // Identificar identificadores o palabras clave
-    if (std::isalpha(currentChar) || currentChar == '_') {
-        std::string value{currentChar};
-        while (std::isalnum(peekNextChar()) || peekNextChar() == '_')
-            value += eatNextChar();
-
-        // Verificar si es una palabra clave
-        if (value == "print") {
-            return Token{tokenStartLocation, TokenKind::KwPrint}; // Palabra clave 'print'
+        // Detectar el fin del archivo
+        if (currentChar == '\0') {
+            return Token{tokenStartLocation, TokenKind::Eof};
         }
 
-        return Token{tokenStartLocation, TokenKind::Identifier, std::move(value)};
+        // Revisar si es un token de un solo carácter
+        switch (currentChar) {
+            case '(': return Token{tokenStartLocation, TokenKind::LeftParenthesis};
+            case ')': return Token{tokenStartLocation, TokenKind::RightParenthesis};
+            case '{': return Token{tokenStartLocation, TokenKind::LeftBrace};
+            case '}': return Token{tokenStartLocation, TokenKind::RightBrace};
+            case ':': return Token{tokenStartLocation, TokenKind::ColonSymbol};
+            case '+': return Token{tokenStartLocation, TokenKind::AddOp}; // Operador suma
+            case '=': return Token{tokenStartLocation, TokenKind::AssignOp}; // Operador asignación
+            case '$': return Token{tokenStartLocation, TokenKind::Eop}; // Fin del programa
+        }
+
+        // Ignorar comentarios estilo Python (#)
+        if (currentChar == '#') {
+            while (peekNextChar() != '\n' && peekNextChar() != '\0') {
+                eatNextChar();  // Ignorar el comentario hasta el final de la línea
+            }
+            return getNextToken();  // Continuar después del comentario
+        }
+
+        // Identificar cadenas
+        if (currentChar == '\"') {
+            std::string value;
+            currentChar = eatNextChar();
+            while (currentChar != '\"' && currentChar != '\0') {
+                if (currentChar == '\\') { // Detectar caracteres de escape
+                    char nextChar = eatNextChar();
+                    switch (nextChar) {
+                        case 'n': value += '\n'; break;
+                        case 't': value += '\t'; break;
+                        default: value += nextChar; break;
+                    }
+                } else {
+                    value += currentChar;
+                }
+                currentChar = eatNextChar();
+            }
+            return Token{tokenStartLocation, TokenKind::String, std::move(value)};
+        }
+
+        // Identificar números
+        if (std::isdigit(currentChar)) {
+            std::string value{currentChar}; // Añadir el primer dígito
+            while (std::isdigit(peekNextChar())) {
+                value += eatNextChar(); // Acumular los dígitos
+            }
+            return Token{tokenStartLocation, TokenKind::Number, std::move(value)};
+        }
+
+        // Identificar identificadores o palabras clave
+        if (std::isalpha(currentChar) || currentChar == '_') {
+            std::string value{currentChar};
+            while (std::isalnum(peekNextChar()) || peekNextChar() == '_')
+                value += eatNextChar();
+
+            // Verificar si es una palabra clave
+            if (value == "print") {
+                return Token{tokenStartLocation, TokenKind::PrintKeyword}; // Palabra clave 'print'
+            }
+
+            return Token{tokenStartLocation, TokenKind::Identifier, std::move(value)};
+        }
+
+        // Si llegamos aquí, no se encontró un token válido
+        return Token{tokenStartLocation, TokenKind::Unknown};
     }
-
-    // Si llegamos aquí, no se encontró un token válido
-    return Token{tokenStartLocation, TokenKind::Unk};
-    }
-
-
 };
 
 int main() {
-    // Buffer con el código de ejemplo de la imagen
-    SourceFile sourceFile{"test.bminor", R"(
-    a = 2 + 7
-    print(a) # este es un comentario
-    $
-    )"};
+    // Leer archivo de entrada
+    std::ifstream file("prueba.txt"); // Asegúrate de que el archivo exista
+    if (!file.is_open()) {
+        std::cerr << "No se pudo abrir el archivo 'codigo_fuente.txt'." << std::endl;
+        return 1;
+    }
+
+    // Leer el contenido del archivo en un buffer
+    std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+
+    // Instanciar el archivo fuente con el contenido del archivo .txt
+    SourceFile sourceFile{"codigo_fuente.txt", buffer};
 
     Lexer lexer(sourceFile);
     Token token;
@@ -164,18 +166,18 @@ int main() {
     std::cout << "INFO SCAN - Start scanning...\n";
     while (true) {
         token = lexer.getNextToken();
-        if (token.kind == TokenKind::Eof || token.kind == TokenKind::Unk) break;
+        if (token.kind == TokenKind::Eof || token.kind == TokenKind::Unknown) break;
 
         std::string tokenType;
         std::string symbol;
 
         // Asegúrate de que los tokens que uses aquí están definidos en TokenKind
         switch (token.kind) {
-            case TokenKind::Lpar: 
+            case TokenKind::LeftParenthesis: 
                 tokenType = "OPEN_PAR"; 
                 symbol = "(";
                 break;
-            case TokenKind::Rpar: 
+            case TokenKind::RightParenthesis: 
                 tokenType = "CLOSE_PAR"; 
                 symbol = ")";
                 break;
@@ -199,7 +201,7 @@ int main() {
                 tokenType = "ID"; 
                 symbol = token.value.has_value() ? *token.value : "[ID]";
                 break;
-            case TokenKind::KwPrint: 
+            case TokenKind::PrintKeyword: 
                 tokenType = "PRINT_KEY"; 
                 symbol = "print";
                 break;
