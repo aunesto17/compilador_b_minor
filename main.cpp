@@ -107,56 +107,50 @@ public:
 
         // Ignorar comentarios multilínea
         if (currentChar == '/' && peekNextChar() == '*') {
-            //std::cout << "DEBUG: Iniciando comentario multilínea" << std::endl;
+             std::cout << "DEBUG: Iniciando comentario multilínea" << std::endl;
             eatNextChar(); // Consumir '*'
             eatNextChar(); // Consumir el primer char después de '/*'
-
             // Continuar hasta encontrar el cierre '*/' o fin de archivo
             while (!(currentChar == '*' && peekNextChar() == '/') && currentChar != '\0') {
-                //std::cout << "DEBUG: Consumir dentro de comentario multilínea. currentChar: " << currentChar << std::endl;
+                std::cout << "DEBUG: Consumir dentro de comentario multilínea. currentChar: " << currentChar << std::endl;
                 currentChar = eatNextChar();
             }
-
             if (currentChar == '*' && peekNextChar() == '/') {
-                //std::cout << "DEBUG: Fin de comentario multilínea" << std::endl;
+                std::cout << "DEBUG: Fin de comentario multilínea" << std::endl;
                 eatNextChar(); // Consumir '*'
                 eatNextChar(); // Consumir '/'
             }
-
-            // Consumir espacios después del comentario
+            // Consumir espacios en blanco o saltos de línea después del comentario
             while (std::isspace(currentChar)) {
                 currentChar = eatNextChar();
             }
 
             std::cout << "DEBUG: Carácter después del comentario multilínea: " << currentChar << "\n";
 
-            // Llamar nuevamente a getNextToken para continuar el escaneo
             return getNextToken();
         }
 
-        // Ignorar comentarios de una línea
+        // Ignorar comentarios de una sola línea
         if (currentChar == '/' && peekNextChar() == '/') {
-            //std::cout << "DEBUG: Iniciando comentario de una línea" << std::endl;
-            eatNextChar(); // Consumir segundo '/'
-
+            std::cout << "DEBUG: Iniciando comentario de una línea" << std::endl;
+            eatNextChar(); // Consumir el segundo '/'
+            
             // Continuar hasta el final de la línea o fin de archivo
             while (currentChar != '\n' && currentChar != '\0') {
-               // std::cout << "DEBUG: Consumir dentro de comentario de una línea. currentChar: " << currentChar << std::endl;
+                std::cout << "DEBUG: Consumir dentro de comentario de una línea. currentChar: " << currentChar << std::endl;
                 currentChar = eatNextChar();
             }
 
-
-            while (std::isspace(currentChar)) {
+            // Consumir el salto de línea después del comentario
+            if (currentChar == '\n') {
                 currentChar = eatNextChar();
             }
 
+            std::cout << "DEBUG: Fin de comentario de una línea" << std::endl;
             std::cout << "DEBUG: Carácter después del comentario de una línea: " << currentChar << "\n";
 
-            //std::cout << "DEBUG: Fin de comentario de una línea" << std::endl;
-            // Llamar nuevamente a getNextToken para continuar el escaneo
             return getNextToken();
         }
-
 
 
         // Operadores lógicos

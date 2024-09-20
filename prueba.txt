@@ -1,3 +1,34 @@
-a = 2 + 7
-print(a) # este es un comentario
-$
+/* Esto es un comentario multilínea
+   que debería ser ignorado por el scanner.
+*/
+
+fn main() {
+    // Declaración de variables
+    integer x = 42;       // Entero
+    boolean flag = true;  // Booleano
+    char letter = 'A';    // Carácter
+    string msg = "Hola, Mundo!"; // Cadena de texto
+
+    // Operaciones matemáticas
+    x = x + 10;     // Suma
+    x = x - 5;      // Resta
+    x = x * 2;      // Multiplicación
+    x = x / 3;      // División
+    x = x % 2;      // Módulo
+
+    // Comparaciones lógicas
+    if (x > 10 && flag || !flag) {
+        print("Condición cumplida");
+    }
+
+    // Carácter y cadenas
+    char anotherLetter = 'B';
+    string greeting = "¡Bienvenido!";
+    
+    /* Otro comentario multilínea
+       sobre esta función
+    */
+    
+    // Finalización del programa
+    $   // Token EOP
+}
