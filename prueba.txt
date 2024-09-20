@@ -1,3 +1,53 @@
-a = 2 + 7
+// espacios
+                                                            
+                                                                         
+// espacio en blanco
+
+
+// t    a   b   u   l   a   c   i   o   n   e   s
+
+
+// este es un comentario sencillo
+/* este es un comentario en bloque */
+/* este es un comentario en bloque sin cerramiento adecuado *
+
+a = 2 + 7;
+
+// identificadores validos
+
+_x _y _z 
+_i1I_ _j2I_ _k3I_
+a_uno a_dos a_tres
+i  x  mystr  fog123  BigLongName55
+
+// simbolos y operadores
+: ; , [ ] { } ( )
++ ++
+- --
+! !=
+^
+*
+/
+%
+< <= > >= = ==
+
+array boolean char
+else false for
+function if integer
+print return string
+true void while
+
 print(a) # este es un comentario
+
+x: integer; y: integer = 123; 
+b: boolean = false; c: char = 'q'; 
+s: string = "hello world\n";
+
+// cadena mal cerrada
+p: string = "hola mundo;
+
+a: array [5] integer;
+a: array [5] integer = {1,2,3,4,5};
+312323412414
+
 $
