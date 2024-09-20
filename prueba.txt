@@ -4,14 +4,15 @@
 // espacio en blanco
 
 
-// t    a   b   u   l   a   c   i   o   n   e   s
+// t   a   b   u   l   a   c   i   o   n   e   s
 
 
 // este es un comentario sencillo
 /* este es un comentario en bloque */
 /* este es un comentario en bloque sin cerramiento adecuado *
 
-a = 2 + 7;
+a   =    2    +    7;
+a=2+7;
 
 // identificadores validos
 
@@ -30,6 +31,7 @@ i  x  mystr  fog123  BigLongName55
 /
 %
 < <= > >= = ==
+&& ||
 
 array boolean char
 else false for
@@ -49,5 +51,7 @@ p: string = "hola mundo;
 a: array [5] integer;
 a: array [5] integer = {1,2,3,4,5};
 312323412414
+
+92233720368547581000000 // numero no valido
 
 $

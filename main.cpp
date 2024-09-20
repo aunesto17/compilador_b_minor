@@ -22,7 +22,7 @@ enum class TokenKind : char {
     LeftBrace, RightBrace, 
     LeftParenthesis, RightParenthesis, 
     PostfixIncrement, PostfixDecrement, 
-    LogicalNot,
+    LogicalNot, LogicalAnd, LogicalOr,
     Exponentiation,
     Multiplication, Division, Modulus,
     Addition, Subtraction,
@@ -167,6 +167,18 @@ public:
                     return Token{tokenStartLocation, TokenKind::NotEqual};
                 }
                 return Token{tokenStartLocation, TokenKind::LogicalNot};
+            case '&':
+                if(peekNextChar() == '&') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::LogicalAnd};
+                }
+                return Token{tokenStartLocation, TokenKind::Unknown};
+            case '|':
+                if(peekNextChar() == '|') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::LogicalOr};
+                }
+                return Token{tokenStartLocation, TokenKind::Unknown};
             case '^': return Token{tokenStartLocation, TokenKind::Exponentiation};
             case '*': return Token{tokenStartLocation, TokenKind::Multiplication};
             case '/': return Token{tokenStartLocation, TokenKind::Division};
@@ -195,7 +207,7 @@ public:
 
         // Identificar cadenas
         if (currentChar == '"') {
-            std::cout << "DEBUG LEXER - String detected" << std::endl;	
+            //std::cout << "DEBUG LEXER - String detected" << std::endl;	
             std::string value;
             while (peekNextChar() != '"') {
                 if (peekNextChar() == '\0' || peekNextChar() == '\n') {
@@ -232,6 +244,13 @@ public:
             std::string value{currentChar}; // Añadir el primer dígito
             while (std::isdigit(peekNextChar())) {
                 value += eatNextChar(); // Acumular los dígitos
+            }
+            const char * c = value.c_str(); 
+            long long ll = std::strtoll(c, nullptr, sizeof(value));
+            if(ll > 922337203685475807 || ll < -9223372036854775808) {
+                std::cerr << "ERROR LEXICO - Numero fuera de rango" << std::endl;
+                errorCount++;
+                return Token{tokenStartLocation, TokenKind::Unknown};
             }
             return Token{tokenStartLocation, TokenKind::Number, std::move(value)};
         }
@@ -409,6 +428,14 @@ int main() {
             case TokenKind::LogicalNot:
                 tokenType = "LOGICAL_NOT"; 
                 symbol = "!";
+                break;
+            case TokenKind::LogicalAnd:
+                tokenType = "LOGICAL_AND"; 
+                symbol = "&&";
+                break;
+            case TokenKind::LogicalOr:
+                tokenType = "LOGICAL_OR"; 
+                symbol = "||";
                 break;
             case TokenKind::Exponentiation:
                 tokenType = "EXP_OP"; 
