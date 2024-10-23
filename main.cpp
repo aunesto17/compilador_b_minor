@@ -4,23 +4,50 @@
 #include <unordered_map>
 #include <optional>
 #include <cctype>
+#include <stdlib.h>
+
 
 // Definición de los tipos de tokens
 enum class TokenKind : char {
-    Identifier, FunctionKeyword, VoidKeyword, IntKeyword, BooleanKeyword, 
-    CharKeyword, StringKeyword, Number, LeftParenthesis, RightParenthesis, 
-    LeftBrace, RightBrace, ColonSymbol, String, Eof, Unknown, 
-    AssignOp, AddOp, SubOp, MulOp, DivOp, ModOp, Semicolon, 
-    Char, PrintKeyword, Eop, GreaterOp,  GreaterEqualOp, LessOp, LessEqualOp,
-    LogicalAndOp, LogicalOrOp, NotEqualOp,NotOp,
+    KwArray, KwBoolean, KwChar, KwElse, KwFalse, KwFor, KwFunction, 
+    KwIf, KwInteger, KwPrint, KwReturn, KwString, KwTrue, KwVoid, KwWhile,
+
+    Identifier, 
+    Number,
+    StringVal,
+    CharVal,
+    
+    ColonSymbol, SemiColonSymbol, CommaSymbol,
+    LeftBracket, RightBracket,
+    LeftBrace, RightBrace, 
+    LeftParenthesis, RightParenthesis, 
+    PostfixIncrement, PostfixDecrement, 
+    LogicalNot, LogicalAnd, LogicalOr,
+    Exponentiation,
+    Multiplication, Division, Modulus,
+    Addition, Subtraction,
+    LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual, isEqual, NotEqual,
+    Assign,
+    Eof, Unknown
 };
 
 // Mapa de palabras clave
 const std::unordered_map<std::string_view, TokenKind> keywords = {
-    {"fn", TokenKind::FunctionKeyword}, {"void", TokenKind::VoidKeyword}, 
-    {"integer", TokenKind::IntKeyword}, {"boolean", TokenKind::BooleanKeyword}, 
-    {"char", TokenKind::CharKeyword}, {"string", TokenKind::StringKeyword}, 
-    {"print", TokenKind::PrintKeyword}
+    {"array", TokenKind::KwArray},
+    {"boolean", TokenKind::KwBoolean},
+    {"char", TokenKind::KwChar},
+    {"else", TokenKind::KwElse},
+    {"false", TokenKind::KwFalse},
+    {"for", TokenKind::KwFor},
+    {"function", TokenKind::KwFunction},
+    {"if", TokenKind::KwIf},
+    {"integer", TokenKind::KwInteger},
+    {"print", TokenKind::KwPrint},
+    {"return", TokenKind::KwReturn},
+    {"string", TokenKind::KwString},
+    {"true", TokenKind::KwTrue},
+    {"void", TokenKind::KwVoid},
+    {"while", TokenKind::KwWhile}
 };
 
 // Estructura para la ubicación del token en el archivo
@@ -45,13 +72,18 @@ struct SourceFile {
 
 // Clase del analizador léxico (lexer)
 class Lexer {
-    const SourceFile* source;
+    const SourceFile *source;
     size_t idx = 0;
     int line = 1;
     int column = 0;
+    unsigned int errorCount = 0;
 
 public:
-    explicit Lexer(const SourceFile& source) : source(&source) {}
+    explicit Lexer(const SourceFile &source) : source(&source) {}
+
+    unsigned int getErrorCount() const {
+        return errorCount;
+    }
 
     char peekNextChar() const {
         return source->buffer[idx];
@@ -64,11 +96,8 @@ public:
             ++line;
             column = 0;
         }
+        //std::cout << "DEBUG LEXER - Current char: " << currentChar << " l:" << line << " c:" << column << std::endl;	
         return currentChar;
-    }
-
-    bool isEndOfFile() {
-        return idx >= source->buffer.size(); // O la forma en que manejas el tamaño del buffer
     }
 
     Token getNextToken() {
@@ -77,7 +106,7 @@ public:
         // Ignorar espacios en blanco
         while (std::isspace(currentChar)) 
             currentChar = eatNextChar();
-        
+    
         SourceLocation tokenStartLocation{source->path, line, column};
 
         // Detectar el fin del archivo
@@ -85,179 +114,156 @@ public:
             return Token{tokenStartLocation, TokenKind::Eof};
         }
 
-
-        if (currentChar == '\"') {
-            std::string value = "";
-            currentChar = eatNextChar(); // Avanzar después de la primera comilla
-
-            while (currentChar != '\"' && currentChar != '\0') { // '\0' representa el final de archivo en muchos sistemas
-                value += currentChar;
-                currentChar = eatNextChar();
-            }
-
-            if (currentChar == '\"') {
-                eatNextChar(); // Consumir la comilla de cierre
-                return Token{tokenStartLocation, TokenKind::StringKeyword, value};
-            } else {
-                // Manejar error de cadena no cerrada
-                return Token{tokenStartLocation, TokenKind::Unknown, "Error: cadena no cerrada"};
-            }
-        }
-
-
-        // Ignorar comentarios multilínea
-        if (currentChar == '/' && peekNextChar() == '*') {
-             std::cout << "DEBUG: Iniciando comentario multilínea" << std::endl;
-            eatNextChar(); // Consumir '*'
-            eatNextChar(); // Consumir el primer char después de '/*'
-            // Continuar hasta encontrar el cierre '*/' o fin de archivo
-            while (!(currentChar == '*' && peekNextChar() == '/') && currentChar != '\0') {
-                std::cout << "DEBUG: Consumir dentro de comentario multilínea. currentChar: " << currentChar << std::endl;
-                currentChar = eatNextChar();
-            }
-            if (currentChar == '*' && peekNextChar() == '/') {
-                std::cout << "DEBUG: Fin de comentario multilínea" << std::endl;
-                eatNextChar(); // Consumir '*'
-                eatNextChar(); // Consumir '/'
-            }
-            // Consumir espacios en blanco o saltos de línea después del comentario
-            while (std::isspace(currentChar)) {
-                currentChar = eatNextChar();
-            }
-
-            std::cout << "DEBUG: Carácter después del comentario multilínea: " << currentChar << "\n";
-
-            return getNextToken();
-        }
-
-        // Ignorar comentarios de una sola línea
-        if (currentChar == '/' && peekNextChar() == '/') {
-            std::cout << "DEBUG: Iniciando comentario de una línea" << std::endl;
-            eatNextChar(); // Consumir el segundo '/'
-            
-            // Continuar hasta el final de la línea o fin de archivo
-            while (currentChar != '\n' && currentChar != '\0') {
-                std::cout << "DEBUG: Consumir dentro de comentario de una línea. currentChar: " << currentChar << std::endl;
-                currentChar = eatNextChar();
-            }
-
-            // Consumir el salto de línea después del comentario
-            if (currentChar == '\n') {
-                currentChar = eatNextChar();
-            }
-
-            std::cout << "DEBUG: Fin de comentario de una línea" << std::endl;
-            std::cout << "DEBUG: Carácter después del comentario de una línea: " << currentChar << "\n";
-
-            return getNextToken();
-        }
-
-
-        // Operadores lógicos
-        if (currentChar == '&' && peekNextChar() == '&') {
-            eatNextChar();  // Operador &&
-            return Token{tokenStartLocation, TokenKind::LogicalAndOp};
-        }
-
-        if (currentChar == '|' && peekNextChar() == '|') {
-            eatNextChar();  // Operador ||
-            return Token{tokenStartLocation, TokenKind::LogicalOrOp};
-        }
-
-        if (currentChar == '!') {
-            if (peekNextChar() == '=') {
-                eatNextChar();  // Operador !=
-                return Token{tokenStartLocation, TokenKind::NotEqualOp};
-            }
-            return Token{tokenStartLocation, TokenKind::NotOp};  // Operador !
-        }
-
-        // Operadores relacionales
-        if (currentChar == '>') {
-            if (peekNextChar() == '=') {
-                eatNextChar();  // Operador >=
-                return Token{tokenStartLocation, TokenKind::GreaterEqualOp};
-            } else {
-                return Token{tokenStartLocation, TokenKind::GreaterOp};  // Operador >
-            }
-        }
-
-        if (currentChar == '<') {
-            if (peekNextChar() == '=') {
-                eatNextChar();  // Operador <=
-                return Token{tokenStartLocation, TokenKind::LessEqualOp};
-            } else {
-                return Token{tokenStartLocation, TokenKind::LessOp};  // Operador <
-            }
-        }
-
-        // Identificar cadenas (strings) entre comillas dobles
-        if (currentChar == '\"') {
-            std::string value;
-            currentChar = eatNextChar();
-            while (currentChar != '\"' && currentChar != '\0') {
-                if (currentChar == '\\') { // Manejar caracteres de escape
-                    char nextChar = eatNextChar();
-                    switch (nextChar) {
-                        case 'n': value += '\n'; break;
-                        case 't': value += '\t'; break;
-                        case '\\': value += '\\'; break;
-                        case '\"': value += '\"'; break;
-                        default: value += nextChar; break;
-                    }
-                } else {
-                    value += currentChar;
+        // Ignorar comentarios // y /* */ 
+        if (currentChar == '/') {
+            if (peekNextChar() == '/') {
+                while (peekNextChar() != '\n' && peekNextChar() != '\0') {
+                    eatNextChar();  // Ignorar el comentario hasta el final de la línea
                 }
-                currentChar = eatNextChar();
+                return getNextToken();  // Continuar después del comentario
+            } else if (peekNextChar() == '*') {
+                eatNextChar();  // Consumir el asterisco
+                while (peekNextChar() != '*' && peekNextChar() != '\n' && peekNextChar() != '\0') {
+                    eatNextChar();  // Ignorar el comentario hasta encontrar un asterisco
+                }
+                if (peekNextChar() == '\0' || peekNextChar() == '\n') {
+                        std::cerr << "ERROR LEXICO - Comentario no cerrado" << std::endl;
+                        errorCount++;
+                        return Token{tokenStartLocation, TokenKind::Unknown};
+                    }
+                else if (eatNextChar() == '*' && peekNextChar() == '/') {
+                    eatNextChar();  // Consumir la barra
+                }   
+                return getNextToken();  // Continuar después del comentario
             }
-            return Token{tokenStartLocation, TokenKind::StringKeyword, std::move(value)};
         }
-
-        
-
-
-       
 
         // Revisar si es un token de un solo carácter
         switch (currentChar) {
-            case '(': return Token{tokenStartLocation, TokenKind::LeftParenthesis};
-            case ')': return Token{tokenStartLocation, TokenKind::RightParenthesis};
+            case ':': return Token{tokenStartLocation, TokenKind::ColonSymbol};
+            case ';': return Token{tokenStartLocation, TokenKind::SemiColonSymbol};
+            case ',': return Token{tokenStartLocation, TokenKind::CommaSymbol};
             case '{': return Token{tokenStartLocation, TokenKind::LeftBrace};
             case '}': return Token{tokenStartLocation, TokenKind::RightBrace};
-            case ':': return Token{tokenStartLocation, TokenKind::ColonSymbol};
-            case '+': return Token{tokenStartLocation, TokenKind::AddOp}; // Operador suma
-            case '-': return Token{tokenStartLocation, TokenKind::SubOp}; // Operador resta
-            case '*': return Token{tokenStartLocation, TokenKind::MulOp}; // Operador multiplicación
-            case '/': return Token{tokenStartLocation, TokenKind::DivOp}; // Operador división
-            case '%': return Token{tokenStartLocation, TokenKind::ModOp}; // Operador módulo
-            case ';': return Token{tokenStartLocation, TokenKind::Semicolon}; // Punto y coma
-            case '=': return Token{tokenStartLocation, TokenKind::AssignOp}; // Operador asignación
-            case '\'': { // Detectar caracteres
-                char charValue = eatNextChar(); // Tomar el carácter
-                if (eatNextChar() == '\'') {
-                    return Token{tokenStartLocation, TokenKind::Char, std::string(1, charValue)};
+            case '[': return Token{tokenStartLocation, TokenKind::LeftBracket};
+            case ']': return Token{tokenStartLocation, TokenKind::RightBracket};
+            case '(': return Token{tokenStartLocation, TokenKind::LeftParenthesis};
+            case ')': return Token{tokenStartLocation, TokenKind::RightParenthesis};
+            case '+':
+                if(peekNextChar() == '+') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::PostfixIncrement};
                 }
-                break;
+                return Token{tokenStartLocation, TokenKind::Addition};
+            case '-':
+                if(peekNextChar() == '-') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::PostfixDecrement};
+                }
+                return Token{tokenStartLocation, TokenKind::Subtraction};
+            case '!':
+                if(peekNextChar() == '=') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::NotEqual};
+                }
+                return Token{tokenStartLocation, TokenKind::LogicalNot};
+            case '&':
+                if(peekNextChar() == '&') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::LogicalAnd};
+                }
+                return Token{tokenStartLocation, TokenKind::Unknown};
+            case '|':
+                if(peekNextChar() == '|') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::LogicalOr};
+                }
+                return Token{tokenStartLocation, TokenKind::Unknown};
+            case '^': return Token{tokenStartLocation, TokenKind::Exponentiation};
+            case '*': return Token{tokenStartLocation, TokenKind::Multiplication};
+            case '/': return Token{tokenStartLocation, TokenKind::Division};
+            case '%': return Token{tokenStartLocation, TokenKind::Modulus};
+            case '<':
+                if(peekNextChar() == '=') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::LessThanOrEqual};
+                }
+                return Token{tokenStartLocation, TokenKind::LessThan};
+            case '>':
+                if(peekNextChar() == '=') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::GreaterThanOrEqual};
+                }
+                return Token{tokenStartLocation, TokenKind::GreaterThan};
+            case '=':
+                if(peekNextChar() == '=') {
+                    eatNextChar();
+                    return Token{tokenStartLocation, TokenKind::isEqual};
+                }
+                return Token{tokenStartLocation, TokenKind::Assign};
+            case '$': return Token{tokenStartLocation, TokenKind::Eof}; // Fin del programa
+        }
+
+
+        // Identificar cadenas
+        if (currentChar == '"') {
+            //std::cout << "DEBUG LEXER - String detected" << std::endl;	
+            std::string value;
+            while (peekNextChar() != '"') {
+                if (peekNextChar() == '\0' || peekNextChar() == '\n') {
+                    std::cerr << "ERROR LEXICO - Cadena no cerrada" << std::endl;
+                    errorCount++;
+                    return Token{tokenStartLocation, TokenKind::Unknown};
+                }
+                value += eatNextChar();
+                //std::cout << value << std::endl;
             }
-            case '$': return Token{tokenStartLocation, TokenKind::Eop}; // Fin del programa
+            eatNextChar();  // Consumir la comilla final
+            return Token{tokenStartLocation, TokenKind::StringVal, std::move(value)};
+        }
+
+        // Identificar caracteres
+        if (currentChar == '\'') {
+            //std::cout << "DEBUG LEXER - Char detected" << std::endl;	
+            std::string value;
+            if (peekNextChar() == '\\') {
+                value += eatNextChar();  // Consumir la barra invertida
+            }
+            value += eatNextChar();  // Consumir el caracter
+            if (peekNextChar() != '\'') {
+                std::cerr << "ERROR LEXICO - Caracter no cerrado" << std::endl;
+                errorCount++;
+                return Token{tokenStartLocation, TokenKind::Unknown};
+            }
+            eatNextChar();  // Consumir la comilla final
+            return Token{tokenStartLocation, TokenKind::CharVal, std::move(value)};
         }
 
         // Identificar números
         if (std::isdigit(currentChar)) {
-            std::string value{currentChar};
-            while (std::isdigit(peekNextChar()))
-                value += eatNextChar();
+            std::string value{currentChar}; // Añadir el primer dígito
+            while (std::isdigit(peekNextChar())) {
+                value += eatNextChar(); // Acumular los dígitos
+            }
+            const char * c = value.c_str(); 
+            long long ll = std::strtoll(c, nullptr, sizeof(value));
+            if(ll > 922337203685475807 || ll < -9223372036854775808) {
+                std::cerr << "ERROR LEXICO - Numero fuera de rango" << std::endl;
+                errorCount++;
+                return Token{tokenStartLocation, TokenKind::Unknown};
+            }
             return Token{tokenStartLocation, TokenKind::Number, std::move(value)};
         }
 
-        // Identificar palabras clave o identificadores
+        // Identificar identificadores o palabras clave
         if (std::isalpha(currentChar) || currentChar == '_') {
             std::string value{currentChar};
             while (std::isalnum(peekNextChar()) || peekNextChar() == '_')
                 value += eatNextChar();
 
-            if (keywords.count(value)) {
-                return Token{tokenStartLocation, keywords.at(value), std::move(value)};
+            // Verificar si es una palabra clave
+            if (auto it = keywords.find(value); it != keywords.end()) {
+                return Token{tokenStartLocation, it->second};
             }
 
             return Token{tokenStartLocation, TokenKind::Identifier, std::move(value)};
@@ -268,125 +274,236 @@ public:
     }
 };
 
-// Función para probar el lexer con un archivo de ejemplo
 int main() {
-    std::ifstream file("prueba.txt");
-    std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    SourceFile sourceFile{"prueba.txt", fileContents};
+    // Leer archivo de entrada
+    std::ifstream file("prueba.txt"); // Asegúrate de que el archivo exista
+    if (!file.is_open()) {
+        std::cerr << "No se pudo abrir el archivo 'codigo_fuente.txt'." << std::endl;
+        return 1;
+    }
+
+    // Leer el contenido del archivo en un buffer
+    std::string buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+
+    // Instanciar el archivo fuente con el contenido del archivo .txt
+    SourceFile sourceFile{"codigo_fuente.txt", buffer};
+
     Lexer lexer(sourceFile);
     Token token;
 
-    std::cout << "INFO SCAN - Start scanning.\n";
+    std::cout << "INFO SCAN - Start scanning...\n";
     while (true) {
         token = lexer.getNextToken();
-        if (token.kind == TokenKind::Eof || token.kind == TokenKind::Unknown) break;
+        if (token.kind == TokenKind::Eof) break;
+        //else if(token.kind == TokenKind::Unknown) {}
 
         std::string tokenType;
         std::string symbol;
 
         // Asegúrate de que los tokens que uses aquí están definidos en TokenKind
         switch (token.kind) {
-            case TokenKind::LeftParenthesis:
-                tokenType = "OPEN_PAR"; symbol = "(";
+            case TokenKind::KwArray: 
+                tokenType = "KW_ARRAY"; 
+                symbol = "array";
                 break;
-            case TokenKind::RightParenthesis:
-                tokenType = "CLOSE_PAR"; symbol = ")";
+            case TokenKind::KwBoolean:
+                tokenType = "KW_BOOLEAN"; 
+                symbol = "boolean";
+                break;
+            case TokenKind::KwChar:
+                tokenType = "KW_CHAR"; 
+                symbol = "char";
+                break;
+            case TokenKind::KwElse:
+                tokenType = "KW_ELSE"; 
+                symbol = "else";
+                break;
+            case TokenKind::KwFalse:
+                tokenType = "KW_FALSE"; 
+                symbol = "false";
+                break;
+            case TokenKind::KwFor:
+                tokenType = "KW_FOR"; 
+                symbol = "for";
+                break;
+            case TokenKind::KwFunction:
+                tokenType = "KW_FUNCTION"; 
+                symbol = "function";
+                break;
+            case TokenKind::KwIf:
+                tokenType = "KW_IF"; 
+                symbol = "if";
+                break;
+            case TokenKind::KwInteger:
+                tokenType = "KW_INTEGER"; 
+                symbol = "integer";
+                break;
+            case TokenKind::KwPrint:    
+                tokenType = "KW_PRINT"; 
+                symbol = "print";
+                break;
+            case TokenKind::KwReturn:
+                tokenType = "KW_RETURN"; 
+                symbol = "return";
+                break;
+            case TokenKind::KwString:
+                tokenType = "KW_STRING"; 
+                symbol = "string";
+                break;
+            case TokenKind::KwTrue:
+                tokenType = "KW_TRUE"; 
+                symbol = "true";
+                break;
+            case TokenKind::KwVoid:
+                tokenType = "KW_VOID"; 
+                symbol = "void";
+                break;
+            case TokenKind::KwWhile:
+                tokenType = "KW_WHILE"; 
+                symbol = "while";
+                break;
+
+            case TokenKind::Number: 
+                tokenType = "INT"; 
+                symbol = token.value.has_value() ? *token.value : "[Número]";
+                break;
+            case TokenKind::Identifier: 
+                tokenType = "ID"; 
+                symbol = token.value.has_value() ? *token.value : "[ID]";
+                break;
+            case TokenKind::StringVal:
+                tokenType = "STRING"; 
+                symbol = token.value.has_value() ? *token.value : "[Cadena]";
+                break;
+            case TokenKind::CharVal:
+                tokenType = "CHAR"; 
+                symbol = token.value.has_value() ? *token.value : "[Caracter]";
+                break;
+
+            case TokenKind::ColonSymbol: 
+                tokenType = "COLON"; 
+                symbol = ":";
+                break;
+            case TokenKind::SemiColonSymbol:
+                tokenType = "SEMICOLON"; 
+                symbol = ";";
+                break;
+            case TokenKind::CommaSymbol:
+                tokenType = "COMMA"; 
+                symbol = ",";
+                break;
+            case TokenKind::LeftBracket:
+                tokenType = "OPEN_BRACKET"; 
+                symbol = "[";
+                break;
+            case TokenKind::RightBracket:
+                tokenType = "CLOSE_BRACKET"; 
+                symbol = "]";
                 break;
             case TokenKind::LeftBrace:
-                tokenType = "OPEN_BRACE"; symbol = "{";
+                tokenType = "OPEN_BRACE"; 
+                symbol = "{";
                 break;
             case TokenKind::RightBrace:
-                tokenType = "CLOSE_BRACE"; symbol = "}";
+                tokenType = "CLOSE_BRACE"; 
+                symbol = "}";
                 break;
-            case TokenKind::AssignOp:
-                tokenType = "ASSIGN_OP"; symbol = "=";
+            case TokenKind::LeftParenthesis: 
+                tokenType = "OPEN_PAR"; 
+                symbol = "(";
                 break;
-            case TokenKind::AddOp:
-                tokenType = "ADD_OP"; symbol = "+";
+            case TokenKind::RightParenthesis: 
+                tokenType = "CLOSE_PAR"; 
+                symbol = ")";
                 break;
-            case TokenKind::SubOp:
-                tokenType = "SUB_OP"; symbol = "-";
+            case TokenKind::PostfixIncrement:
+                tokenType = "POSTFIX_INC"; 
+                symbol = "++";
                 break;
-            case TokenKind::MulOp:
-                tokenType = "MUL_OP"; symbol = "*";
+            case TokenKind::PostfixDecrement:
+                tokenType = "POSTFIX_DEC"; 
+                symbol = "--";
                 break;
-            case TokenKind::DivOp:
-                tokenType = "DIV_OP"; symbol = "/";
+            case TokenKind::LogicalNot:
+                tokenType = "LOGICAL_NOT"; 
+                symbol = "!";
                 break;
-            case TokenKind::ModOp:
-                tokenType = "MOD_OP"; symbol = "%";
+            case TokenKind::LogicalAnd:
+                tokenType = "LOGICAL_AND"; 
+                symbol = "&&";
                 break;
-            case TokenKind::Semicolon:
-                tokenType = "SEMICOLON"; symbol = ";";
+            case TokenKind::LogicalOr:
+                tokenType = "LOGICAL_OR"; 
+                symbol = "||";
                 break;
-            case TokenKind::Number:
-                tokenType = "NUMBER"; symbol = token.value.has_value() ? *token.value : "[Número]";
+            case TokenKind::Exponentiation:
+                tokenType = "EXP_OP"; 
+                symbol = "^";
                 break;
-            case TokenKind::Identifier:
-                tokenType = "ID"; symbol = token.value.has_value() ? *token.value : "[ID]";
+            case TokenKind::Multiplication:
+                tokenType = "MULT_OP"; 
+                symbol = "*";
                 break;
-            case TokenKind::Char:
-                tokenType = "CHAR"; symbol = token.value.has_value() ? *token.value : "[Char]";
+            case TokenKind::Division:
+                tokenType = "DIV_OP"; 
+                symbol = "/";
                 break;
-            case TokenKind::PrintKeyword:
-                tokenType = "PRINT_KEY"; symbol = "print";
+            case TokenKind::Modulus:
+                tokenType = "MOD_OP"; 
+                symbol = "%";
+                break;
+            case TokenKind::Addition:
+                tokenType = "ADD_OP"; 
+                symbol = "+";
+                break;
+            case TokenKind::Subtraction:    
+                tokenType = "SUB_OP"; 
+                symbol = "-";
+                break;
+            case TokenKind::LessThan:  
+                tokenType = "LESS_THAN"; 
+                symbol = "<";
+                break;
+            case TokenKind::LessThanOrEqual:
+                tokenType = "LESS_THAN_OR_EQUAL"; 
+                symbol = "<=";
+                break;
+            case TokenKind::GreaterThan:
+                tokenType = "GREATER_THAN"; 
+                symbol = ">";
+                break;
+            case TokenKind::GreaterThanOrEqual:
+                tokenType = "GREATER_THAN_OR_EQUAL"; 
+                symbol = ">=";
+                break;
+            case TokenKind::isEqual:
+                tokenType = "EQUAL"; 
+                symbol = "==";
+                break;
+            case TokenKind::NotEqual:
+                tokenType = "NOT_EQUAL"; 
+                symbol = "!=";
+                break; 
+            case TokenKind::Assign: 
+                tokenType = "ASSIGN_OP"; 
+                symbol = "=";
+                break; 
+            case TokenKind::Eof:
+                tokenType = "EOF"; 
+                symbol = "$";
                 break;
 
-            // Agregamos los operadores que faltaban:
-            case TokenKind::GreaterOp:
-                tokenType = "GREATER_OP"; symbol = ">";
-                break;
-            case TokenKind::GreaterEqualOp:
-                tokenType = "GREATER_EQUAL_OP"; symbol = ">=";
-                break;
-            case TokenKind::LessOp:
-                tokenType = "LESS_OP"; symbol = "<";
-                break;
-            case TokenKind::LessEqualOp:
-                tokenType = "LESS_EQUAL_OP"; symbol = "<=";
-                break;
-            case TokenKind::LogicalAndOp:
-                tokenType = "LOGICAL_AND_OP"; symbol = "&&";
-                break;
-            case TokenKind::LogicalOrOp:
-                tokenType = "LOGICAL_OR_OP"; symbol = "||";
-                break;
-            case TokenKind::NotOp:
-                tokenType = "NOT_OP"; symbol = "!";
-                break;
-
-            case TokenKind::StringKeyword:
-                tokenType = "STRING"; symbol = token.value.has_value() ? *token.value : "[Cadena]";
-                break;
-
-            case TokenKind::Eop:
-                tokenType = "EOP"; symbol = "$";
-                break;
-
-            // Para comentarios multilínea, simplemente los ignoras y no los retornas como tokens,
-            // pero si quieres tratarlos, puedes agregar esto:
-            //case TokenKind::Comment:
-            // tokenType = "COMMENT"; symbol = "/* ... */";
-            // break;
-
-            //         default:
-            //             tokenType = "Token desconocido";
-            //             symbol = "";
-            //             break;
-//
-            //}
-
-            default:
-                tokenType = "UNKNOWN_TOKEN";
-                symbol = "[Desconocido]";
-                break;
-            }
+            default: 
+                tokenType = "Token desconocido"; 
+                symbol = "";
+        }
 
         std::cout << "DEBUG SCAN - " << tokenType << " [ " 
                   << symbol << " ] found at (" << token.location.line 
                   << ":" << token.location.col << ")\n";
     }
 
-    std::cout << "INFO SCAN - Completed with 0 errors\n";
+    std::cout << "INFO SCAN - Completed with " << lexer.getErrorCount() << " error(s)\n";
     return 0;
 }
