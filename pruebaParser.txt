@@ -1,0 +1,32 @@
+// espacios                                                                                                                             
+// espacio en blanco
+// t   a   b   u   l   a   c   i   o   n   e   s
+// este es un comentario sencillo
+/* este es un comentario en bloque */
+/* este es un comentario en bloque sin cerramiento adecuado *
+
+function int foo (int i) { 
+    int a;
+    print(5);
+    return a;
+}
+
+// variables globales
+int x = 100000000;
+int mod = 17 % 5;
+int n = -x;
+bool x = !b;
+string cad = "hola";
+char c = 'u';
+
+// Operaciones aritméticas compuestas
+int resultado = (5 + 3) * 2;
+int complejo = ((10 - 4) * 3) + (8 / 2);
+
+// Operaciones relacionales
+bool mayor = 5 > 3;
+bool menor = 4 < 8;
+
+
+
+
