@@ -1,0 +1,41 @@
+B-minor Grammar:
+
+Program → Declaration Program’ $
+Program’ → Declaration Program’ | ε
+Declaration → Function | VarDecl
+Function → 'function' Type 'identifier' ( Params ) { StmntList }  
+Type → 'int' Type’ | 'boolean' Type’ | 'char' Type’ | 'string' Type’ | 'void' Type’
+Type’ → [ ] RBracket Type’ | ε
+Params	→ Type 'identifier' Params’ | ε
+Params’	→ , Params | ε
+StmntList → Stmnt StmntList’
+StmntList’ → Stmnt StmntList’ | ε
+Stmnt → VarDecl	| IfStmnt | ForStmnt | ReturnStmnt | PrintStmnt	| ExprStmnt | { StmntList }
+VarDecl → Type 'identifier' VarDecl’
+VarDecl’ → = Expression ; | ;
+IfStmnt	→ 'If' ( Expression ) { Stmnt } IfStmnt’
+IfStmnt’ → 'else' { Stmnt }	| ε
+ForStmnt → 'for' ( ExprStmnt Expression ; ExprStmnt ) { Stmnt }
+ReturnStmnt	→ 'return' Expression ;
+PrintStatement → 'print' ( ExprList ) ;
+ExprStmnt → Expression ; | ;
+ExprList → Expression ExprList’
+ExprList’ → , ExprList | ε
+Expression → 'identifier' = Expression | OrExpr	
+OrExpr → AndExpr OrExpr’
+OrExpr’	→ '||' AndExpr OrExpr’ | ε
+AndExpr	→ EqExpr AndExpr’
+AndExpr’ → 'AND' AndExpr’ | ε
+EqExpr → RelExpr EqExpr’
+EqExpr’ → '==' EqExpr’ | '!=' EqExpr’ | ε
+RelExpr	→ Expr RelExpr’
+RelExpr’ → '<' Expr RelExpr’ | '>' Expr RelExpr’ | '<=' Expr RelExpr’ | '>=' Expr RelExpr’ | ε		
+Expr → Term Expr’
+Expr’ → '+' Term Expr’ | '-' Term Expr’	| ε	
+Term → Unary Term’
+Term’ → '*' Unary Term’ | '/' Unary Term’ | '%' Unary Term’	| ε
+Unary → Factor | '-' Unary | '!' Unary
+Factor → 'identifier' FactorId	| 'integer_literal' Factor’ | 'char_literal' Factor’ | 'string_literal' Factor’ | 'false' Factor’ | 'true' Factor’ | ( Expression ) Factor’
+Factor’	→ [ Expression ] Factor’ | ε
+FactorId → ( ExprList ) Factor’
+

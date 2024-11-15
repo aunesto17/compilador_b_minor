@@ -4,6 +4,11 @@
 #include <iostream>
 #include <unordered_map>
 #include <optional>
+#include <string>
+#include <set>
+#include <vector>
+
+using namespace std;
 
 // Definición de los tipos de tokens
 enum class TokenKind : char {
@@ -53,6 +58,11 @@ struct SourceLocation {
     std::string_view filepath;
     int line;
     int col;
+
+    // Imprimir ubicación del token
+    std::string printLoc() {
+        return "line: " + to_string(line) + " col: " + to_string(col);
+    }
 };
 
 // Estructura del token

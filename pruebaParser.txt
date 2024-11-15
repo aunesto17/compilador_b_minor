@@ -5,28 +5,52 @@
 /* este es un comentario en bloque */
 /* este es un comentario en bloque sin cerramiento adecuado *
 
-function int foo (int i) { 
-    int a;
-    print(5);
-    return a;
+//variables globales
+// int x = 100000000;
+// int mod = 17 % 5;
+// int n = -x;
+// bool x = !b;
+// string cad = "hola";
+// char c = 'u';
+
+//function int foo (int a ) { 
+//    print(5);
+//    return true;
+//}
+
+//function void foo1 (int i) { 
+//    int a;
+//    print(5);
+//}
+
+function int add(int a, int b) {
+    return a + b;
 }
 
-// variables globales
-int x = 100000000;
-int mod = 17 % 5;
-int n = -x;
-bool x = !b;
-string cad = "hola";
-char c = 'u';
-
 // Operaciones aritméticas compuestas
-int resultado = (5 + 3) * 2;
-int complejo = ((10 - 4) * 3) + (8 / 2);
-
+// int resultado = (5 + 3) * 2;
+// int complejo = ((10 - 4) * 3) + (8 / 2);
+ 
 // Operaciones relacionales
-bool mayor = 5 > 3;
-bool menor = 4 < 8;
+// bool mayor = 5 > 3;
+// bool menor = 4 < 8;
 
+function void main() {
+    return 0;
+}
 
+function void nestedBlocks() {
+    string i = ;
 
+    {
+        int y = 20;
+        {
+            int z = x + y;
+            print(z);
+        }
+    }
+}
 
+// int[][] matrix;
+// matrix[0][1] = first;
+// int sum = arr[0] + arr[1] * arr[2];

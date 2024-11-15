@@ -1,0 +1,4 @@
+
+// Operaciones relacionales
+bool mayor = 5 > 3;
+

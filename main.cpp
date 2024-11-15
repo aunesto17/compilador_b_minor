@@ -24,10 +24,11 @@ int main() {
     // Instanciar el archivo fuente con el contenido del archivo .txt
     SourceFile sourceFile{"codigo_fuente.txt", buffer};
 
+    std::cout << "INFO SCAN - Start scanning...\n";
     Lexer lexer(sourceFile);
     Token token;
 
-    // std::cout << "INFO SCAN - Start scanning...\n";
+    
     // while (true) {
     //     token = lexer.getNextToken();
     //     if (token.kind == TokenKind::Eof) break;
@@ -36,7 +37,7 @@ int main() {
     //     std::string tokenType;
     //     std::string symbol;
 
-    //     // Asegúrate de que los tokens que uses aquí están definidos en TokenKind
+        // Asegúrate de que los tokens que uses aquí están definidos en TokenKind
     //     switch (token.kind) {
     //         case TokenKind::KwArray: 
     //             tokenType = "KW_ARRAY"; 
@@ -240,10 +241,11 @@ int main() {
     // }
     // std::cout << "INFO SCAN - Completed with " << lexer.getErrorCount() << " error(s)\n";
 
+
     // Instanciar el parser con el lexer
     Parser parser(lexer);
     parser.start();
-
+    
 
     return 0;
 }

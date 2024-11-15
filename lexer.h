@@ -11,30 +11,78 @@ class Lexer {
     int column = 0;
     unsigned int errorCount = 0;
 
+    std::vector<Token> tokens;
+
 public:
-    explicit Lexer(const SourceFile &source) : source(&source) {}
+    explicit Lexer(const SourceFile &source) : source(&source) {
+        tokenize();
+        std::cout << "DEBUG LEXER - Tokens generated: " << tokens.size() << std::endl;
+        // print all tokens
+        for(auto &t : tokens) {
+            std::cout << "DEBUG LEXER - Token: " << t.kindToString() << " [ " << t.value.value_or("") << " ] found at (" << t.location.line << ":" << t.location.col << ")\n";
+        }
+
+    }
 
     unsigned int getErrorCount() const {
         return errorCount;
     }
 
     char peekNextChar() const {
+         // Check if we're at the end of the buffer
+        if (idx >= source->buffer.size()) {
+            return '\0';  // Return null character to indicate EOF
+        }
         return source->buffer[idx];
     }
 
     char eatNextChar() {
+        // Check if we're at the end of the buffer
+        if (idx >= source->buffer.size()) {
+            return '\0';  // Return null character to indicate EOF
+        }
+
         char currentChar = source->buffer[idx++];
         ++column;
         if (currentChar == '\n') {
             ++line;
             column = 0;
         }
-        //std::cout << "DEBUG LEXER - Current char: " << currentChar << " l:" << line << " c:" << column << std::endl;	
         return currentChar;
+    }
+
+    // insert token in front of the vector
+    void insertToken(Token token) {
+        tokens.insert(tokens.begin(), token);
+    }
+
+    void tokenize() {
+        Token token = getNextToken();
+        while (token.kind != TokenKind::Eof) {
+            tokens.push_back(token);
+            token = getNextToken();
+        }
+        // push back the EOF token
+        tokens.push_back(token);
+    }
+
+    //get tokens in order
+    Token getToken() {
+        if (tokens.empty()) {
+            return Token{source->path, line, column, TokenKind::Eof};
+        }
+        Token token = tokens.front();
+        tokens.erase(tokens.begin());
+        return token;
     }
 
     Token getNextToken() {
         char currentChar = eatNextChar();
+
+        // Check for EOF immediately
+        if (currentChar == '\0') {
+            return Token{SourceLocation{source->path, line, column}, TokenKind::Eof};
+        }
 
         // Ignorar espacios en blanco
         while (std::isspace(currentChar)) 
@@ -43,7 +91,7 @@ public:
         SourceLocation tokenStartLocation{source->path, line, column};
 
         // Detectar el fin del archivo
-        if (currentChar == '\0') {
+        if (currentChar == EOF) {
             return Token{tokenStartLocation, TokenKind::Eof};
         }
 
@@ -143,8 +191,8 @@ public:
             //std::cout << "DEBUG LEXER - String detected" << std::endl;	
             std::string value;
             while (peekNextChar() != '"') {
-                if (peekNextChar() == '\0' || peekNextChar() == '\n') {
-                    std::cerr << "ERROR LEXICO - Cadena no cerrada" << std::endl;
+                if (peekNextChar() == '\0') {
+                    std::cout << "ERROR LEXICO - Cadena no cerrada" << std::endl;
                     errorCount++;
                     return Token{tokenStartLocation, TokenKind::Unknown};
                 }
