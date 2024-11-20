@@ -1,0 +1,89 @@
+// Declaración de una función recursiva: cálculo de factorial
+function int factorial(int n) {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+// Declaración de una función que mezcla diferentes tipos de operaciones
+function int complexFunction(int a, int b) {
+    int result = (a + b) * (b - a) / 2;
+    bool condition = (result > 10) && (a != b) || (a < 5);
+    
+    if (condition) {
+        print("Condition met, computing factorial...");
+        result = factorial(a);
+    } else {
+        result = 0;
+    }
+
+    return result;
+}
+
+// Declaración de la función principal con bloques anidados y llamadas a funciones
+function void main() {
+    int outerResult = 0;
+    {
+        int inner = complexFunction(5, x);
+        outerResult = inner;
+
+        {
+            string innerString = greeting;
+            print(innerString);
+
+            int factorialOfTen = factorial(10);
+            print(factorialOfTen);
+
+            // Llamada a función dentro de un bloque anidado
+            if (factorialOfTen > 100) {
+                print("Factorial de 10 es mayor que 100.");
+            } else {
+                print("Factorial de 10 es menor o igual a 100.");
+            }
+        }
+    }
+
+    // Operación con arrays y uso de índices
+    int arraySum = arr[0] + arr[1] * arr[2] - arr[3];
+    print(arraySum);
+
+    // Uso de bucles para iterar sobre un array
+    for (int i = 0; i < 5; i++) {
+        print(arr[i]);
+    }
+
+    return;
+}
+
+// Otra función para demostrar las declaraciones condicionales y bucles
+function void advancedLoop() {
+    int count = 0;
+    while (count < 10) {
+        print("Current count: " + count);
+        count++;
+    }
+
+    // Uso de 'for' anidado para demostrar control complejo de bucles
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 2; j++) {
+            print("i: " + i + ", j: " + j);
+        }
+    }
+
+    return;
+}
+
+// Declaración de una función con una matriz bidimensional
+function int sumMatrix(int[3][3] matrix) {
+    int sum = 0;
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            sum = sum + matrix[i][j];
+        }
+    }
+
+    return sum;
+}

@@ -1,0 +1,34 @@
+// Archivo de prueba reducido para el lenguaje B-Minor
+
+// Comentarios
+// Este es un comentario de una línea 
+
+// Variables globales 
+int a = 10;
+bool flag = true;
+char letter = 'b';
+string greeting = "hello";
+
+// Funciones
+function int sum(int x, int y) {
+    return x + y;
+}
+
+
+
+function void main() {
+    int result = sum(a, 5);
+    if (result > 10) {
+        print("Resultado es mayor que 10");
+    }
+    return;
+}
+
+// Bloques anidados
+function void nestedExample() {
+    int outer = 3;
+    {
+        int inner = outer + 2;
+        print(inner);
+    }
+}

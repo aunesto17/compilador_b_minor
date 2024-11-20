@@ -1,46 +1,26 @@
-// espacios                                                                                                                             
-// espacio en blanco
-// t   a   b   u   l   a   c   i   o   n   e   s
-// este es un comentario sencillo
-/* este es un comentario en bloque */
-/* este es un comentario en bloque sin cerramiento adecuado *
+// Variables globales
+int x = 100;
+int mod = 17 % 5;
+int n = -x;
+bool isPositive = x > 0;
+string greeting = "Hello, B-Minor!";
+char initial = 'B';
 
-//variables globales
-// int x = 100000000;
-// int mod = 17 % 5;
-// int n = -x;
-// bool x = !b;
-// string cad = "hola";
-// char c = 'u';
+int arr[5]; // Declaración del arreglo
+arr = [1, 2, 3, 4, 5]; // Inicialización del arreglo
 
-//function int foo (int a ) { 
-//    print(5);
-//    return true;
-//}
-
-//function void foo1 (int i) { 
-//    int a;
-//    print(5);
-//}
-
+// Función que suma dos números
 function int add(int a, int b) {
     return a + b;
 }
 
-// Operaciones aritméticas compuestas
-// int resultado = (5 + 3) * 2;
-// int complejo = ((10 - 4) * 3) + (8 / 2);
- 
-// Operaciones relacionales
-// bool mayor = 5 > 3;
-// bool menor = 4 < 8;
-
+// Función principal
 function void main() {
-    return 0;
-}
-
-function void nestedBlocks() {
-    string i = ;
+    int result = add(3, 7);
+    
+    if (result > 5) {
+        print("The result is greater than 5");
+    }
 
     {
         int y = 20;
@@ -49,8 +29,25 @@ function void nestedBlocks() {
             print(z);
         }
     }
+
+    return;
 }
 
-// int[][] matrix;
-// matrix[0][1] = first;
-// int sum = arr[0] + arr[1] * arr[2];
+// Función con bloques anidados
+function void nestedExample() {
+    int outer = 3;
+
+    {
+        int inner = outer + 2;
+        print(inner);
+    }
+}
+
+// Operaciones con matrices
+int matrix[3][3];
+matrix[0][0] = 1;
+matrix[0][1] = 2;
+matrix[0][2] = 3;
+
+// Operaciones de acceso a elementos del arreglo
+int sum = arr[0] + arr[1] * arr[2];

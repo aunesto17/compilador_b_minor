@@ -1,5 +1,5 @@
 #ifndef HELPER_H_
-#define HELPER_H_
+#define HELPER_H_ 
 
 #include <iostream>
 #include <unordered_map>
@@ -75,61 +75,62 @@ struct Token {
     //Token() : kind{TokenKind::Unknown} {}
 
     // retornar tipo de token
-    std::string_view kindToString() const {
-        switch (kind) {
-            case TokenKind::KwArray: return "KW_ARRAY "+value.value_or("");
-            case TokenKind::KwBoolean: return "KW_BOOLEAN "+value.value_or("");
-            case TokenKind::KwChar: return "KW_CHAR "+value.value_or("");
-            case TokenKind::KwElse: return "KW_ELSE "+value.value_or("");
-            case TokenKind::KwFalse: return "KW_FALSE "+value.value_or("");
-            case TokenKind::KwFor: return "KW_FOR "+value.value_or("");
-            case TokenKind::KwFunction: return "KW_FUNCTION "+value.value_or("");
-            case TokenKind::KwIf: return "KW_IF "+value.value_or("");
-            case TokenKind::KwInteger: return "KW_INTEGER "+value.value_or("");
-            case TokenKind::KwPrint: return "KW_PRINT "+value.value_or("");
-            case TokenKind::KwReturn: return "KW_RETURN "+value.value_or("");
-            case TokenKind::KwString: return "KW_STRING "+value.value_or("");
-            case TokenKind::KwTrue: return "KW_TRUE "+value.value_or("");
-            case TokenKind::KwVoid: return "KW_VOID "+value.value_or("");
-            case TokenKind::KwWhile: return "KW_WHILE "+value.value_or("");
-            
-            case TokenKind::Identifier: return "ID "+value.value_or("");
-            case TokenKind::Number: return "INT_LIT "+value.value_or("");
-            case TokenKind::StringVal: return "STRING_LIT "+value.value_or("");
-            case TokenKind::CharVal: return "CHAR_LIT "+value.value_or("");
+    std::string kindToString() const {
+    switch (kind) {
+        case TokenKind::KwArray: return "KW_ARRAY";
+        case TokenKind::KwBoolean: return "KW_BOOLEAN";
+        case TokenKind::KwChar: return "KW_CHAR";
+        case TokenKind::KwElse: return "KW_ELSE";
+        case TokenKind::KwFalse: return "KW_FALSE";
+        case TokenKind::KwFor: return "KW_FOR";
+        case TokenKind::KwFunction: return "KW_FUNCTION";
+        case TokenKind::KwIf: return "KW_IF";
+        case TokenKind::KwInteger: return "KW_INTEGER";
+        case TokenKind::KwPrint: return "KW_PRINT";
+        case TokenKind::KwReturn: return "KW_RETURN";
+        case TokenKind::KwString: return "KW_STRING";
+        case TokenKind::KwTrue: return "KW_TRUE";
+        case TokenKind::KwVoid: return "KW_VOID";
+        case TokenKind::KwWhile: return "KW_WHILE";
 
-            case TokenKind::ColonSymbol: return "COLON"+value.value_or("");
-            case TokenKind::SemiColonSymbol: return "SEMICOLON"+value.value_or("");
-            case TokenKind::CommaSymbol: return "COMMA"+value.value_or("");
-            case TokenKind::LeftBracket: return "OPEN_BRACKET"+value.value_or("");
-            case TokenKind::RightBracket: return "CLOSE_BRACKET"+value.value_or("");
-            case TokenKind::LeftBrace: return "OPEN_BRACE"+value.value_or("");
-            case TokenKind::RightBrace: return "CLOSE_BRACE"+value.value_or("");
-            case TokenKind::LeftParenthesis: return "OPEN_PAR"+value.value_or("");
-            case TokenKind::RightParenthesis: return "CLOSE_PAR"+value.value_or("");
-            case TokenKind::PostfixIncrement: return "POSTFIX_INCREMENT"+value.value_or("");
-            case TokenKind::PostfixDecrement: return "POSTFIX_DECREMENT"+value.value_or("");
-            case TokenKind::LogicalNot: return "LOGICAL_NOT"+value.value_or("");
-            case TokenKind::LogicalAnd: return "LOGICAL_AND"+value.value_or("");
-            case TokenKind::LogicalOr: return "LOGICAL_OR"+value.value_or("");
-            case TokenKind::Exponentiation: return "EXPONENTIATION"+value.value_or("");
-            case TokenKind::Multiplication: return "MULT_OP"+value.value_or("");
-            case TokenKind::Division: return "DIV_OP"+value.value_or("");
-            case TokenKind::Modulus: return "MOD_OP"+value.value_or("");
-            case TokenKind::Addition: return "ADD_OP"+value.value_or("");
-            case TokenKind::Subtraction: return "SUB_OP"+value.value_or("");
-            case TokenKind::LessThan: return "LESS_THAN"+value.value_or("");
-            case TokenKind::LessThanOrEqual: return "LESS_THAN_OR_EQUAL"+value.value_or("");
-            case TokenKind::GreaterThan: return "GREATER_THAN"+value.value_or("");
-            case TokenKind::GreaterThanOrEqual: return "GREATER_THAN_OR_EQUAL"+value.value_or("");
-            case TokenKind::isEqual: return "EQUAL"+value.value_or("");
-            case TokenKind::NotEqual: return "NOT_EQUAL"+value.value_or("");
-            case TokenKind::Assign: return "ASSIGN"+value.value_or("");
-            case TokenKind::Eof: return "EOF"+value.value_or("");
-            case TokenKind::Unknown: return "UNKNOWN"+value.value_or("");
-        
-        }
+        case TokenKind::Identifier: return "ID " + value.value_or("");
+        case TokenKind::Number: return "INT_LIT " + value.value_or("");
+        case TokenKind::StringVal: return "STRING_LIT " + value.value_or("");
+        case TokenKind::CharVal: return "CHAR_LIT " + value.value_or("");
+
+        case TokenKind::ColonSymbol: return "COLON";
+        case TokenKind::SemiColonSymbol: return "SEMICOLON";
+        case TokenKind::CommaSymbol: return "COMMA";
+        case TokenKind::LeftBracket: return "OPEN_BRACKET";
+        case TokenKind::RightBracket: return "CLOSE_BRACKET";
+        case TokenKind::LeftBrace: return "OPEN_BRACE";
+        case TokenKind::RightBrace: return "CLOSE_BRACE";
+        case TokenKind::LeftParenthesis: return "OPEN_PAR";
+        case TokenKind::RightParenthesis: return "CLOSE_PAR";
+        case TokenKind::PostfixIncrement: return "POSTFIX_INCREMENT";
+        case TokenKind::PostfixDecrement: return "POSTFIX_DECREMENT";
+        case TokenKind::LogicalNot: return "LOGICAL_NOT";
+        case TokenKind::LogicalAnd: return "LOGICAL_AND";
+        case TokenKind::LogicalOr: return "LOGICAL_OR";
+        case TokenKind::Exponentiation: return "EXPONENTIATION";
+        case TokenKind::Multiplication: return "MULT_OP";
+        case TokenKind::Division: return "DIV_OP";
+        case TokenKind::Modulus: return "MOD_OP";
+        case TokenKind::Addition: return "ADD_OP";
+        case TokenKind::Subtraction: return "SUB_OP";
+        case TokenKind::LessThan: return "LESS_THAN";
+        case TokenKind::LessThanOrEqual: return "LESS_THAN_OR_EQUAL";
+        case TokenKind::GreaterThan: return "GREATER_THAN";
+        case TokenKind::GreaterThanOrEqual: return "GREATER_THAN_OR_EQUAL";
+        case TokenKind::isEqual: return "EQUAL";
+        case TokenKind::NotEqual: return "NOT_EQUAL";
+        case TokenKind::Assign: return "ASSIGN";
+        case TokenKind::Eof: return "EOF";
+        case TokenKind::Unknown: return "UNKNOWN";
+        default: return "UNRECOGNIZED TOKEN";
     }
+}
+
 };
 
 // Estructura del archivo fuente
