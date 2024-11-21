@@ -4,23 +4,12 @@
 #include "lexer.h"
 #include <iostream>
 #include <string>
-#include <set>
 
 class Parser {
 private:
     Lexer &lexer;
     Token currentToken;
     std::string debugPrefix;
-
-     // Función para realizar la recuperación por pánico
-    void panicRecoveryForRule(const std::set<TokenKind> &followSet) {
-        std::cout << debugPrefix << "Entering panic recovery mode." << std::endl; // Nuevo mensaje
-        while (currentToken.kind != TokenKind::Eof && followSet.find(currentToken.kind) == followSet.end()) {
-            eatToken();
-        }
-        std::cout << debugPrefix << "Exiting panic recovery mode." << std::endl; // Nuevo mensaje
-    }
-
 
     void eatToken() {
         std::cout << debugPrefix << "Eating token: " << currentToken.kindToString() << " [ " << currentToken.value.value_or("") << " ]" << std::endl;
@@ -32,18 +21,17 @@ private:
         std::cerr << "Syntax Error at line " << currentToken.location.line << ", col " << currentToken.location.col << ": " << message << std::endl;
     }
 
-
-    bool expectToken(TokenKind expectedKind, const std::string &errorMessage, const std::set<TokenKind> &followSet = {}) {
+    bool expectToken(TokenKind expectedKind, const std::string &errorMessage) {
         if (currentToken.kind == expectedKind) {
             eatToken();
             return true;
         }
         reportError(errorMessage);
-        panicRecoveryForRule(followSet);
-        return followSet.empty() || followSet.find(currentToken.kind) != followSet.end();
+        return false;
     }
 
-      void increaseDebugPrefix() {
+    // Helper function to manage debug prefix for indentation
+    void increaseDebugPrefix() {
         debugPrefix += "  ";
     }
 
@@ -57,13 +45,9 @@ private:
     bool program() {
         std::cout << debugPrefix << "Entering program rule" << std::endl;
         increaseDebugPrefix();
-        if (!declaration()) {
-            panicRecoveryForRule({TokenKind::Eof});
-        }
+        if (!declaration()) return false;
         while (currentToken.kind != TokenKind::Eof) {
-            if (!declaration()) {
-                panicRecoveryForRule({TokenKind::Eof});
-            }
+            if (!declaration()) return false;
         }
         decreaseDebugPrefix();
         std::cout << debugPrefix << "Exiting program rule" << std::endl;
@@ -81,47 +65,24 @@ private:
         } else {
             reportError("Expected function or variable declaration.");
             result = false;
-            panicRecoveryForRule({TokenKind::KwFunction, TokenKind::KwInteger, TokenKind::KwBoolean, TokenKind::KwChar, TokenKind::KwString, TokenKind::KwVoid, TokenKind::Eof});
         }
         decreaseDebugPrefix();
         std::cout << debugPrefix << "Exiting declaration rule" << std::endl;
         return result;
     }
 
-    
     bool function() {
         std::cout << debugPrefix << "Entering function rule" << std::endl;
         increaseDebugPrefix();
         eatToken(); // consume 'function'
-        if (!type()) {
-            panicRecoveryForRule({TokenKind::Identifier});
-        }
-        if (!expectToken(TokenKind::Identifier, "Expected function name.", {TokenKind::LeftParenthesis})) {
-            decreaseDebugPrefix();
-            return false;
-        }
-        if (!expectToken(TokenKind::LeftParenthesis, "Expected '('.", {TokenKind::RightParenthesis})) {
-            decreaseDebugPrefix();
-            return false;
-        }
-        if (!params()) {
-            panicRecoveryForRule({TokenKind::RightParenthesis});
-        }
-        if (!expectToken(TokenKind::RightParenthesis, "Expected ')'.", {TokenKind::LeftBrace})) {
-            decreaseDebugPrefix();
-            return false;
-        }
-        if (!expectToken(TokenKind::LeftBrace, "Expected '{'.", {TokenKind::KwIf, TokenKind::KwFor, TokenKind::KwWhile, TokenKind::KwReturn, TokenKind::KwPrint, TokenKind::RightBrace})) {
-            decreaseDebugPrefix();
-            return false;
-        }
-        if (!stmntList()) {
-            panicRecoveryForRule({TokenKind::RightBrace});
-        }
-        if (!expectToken(TokenKind::RightBrace, "Expected '}'.", {TokenKind::KwFunction, TokenKind::KwInteger, TokenKind::KwBoolean, TokenKind::KwChar, TokenKind::KwString, TokenKind::KwVoid, TokenKind::Eof})) {
-            decreaseDebugPrefix();
-            return false;
-        }
+        if (!type()) return false;
+        if (!expectToken(TokenKind::Identifier, "Expected function name.")) return false;
+        if (!expectToken(TokenKind::LeftParenthesis, "Expected '('.")) return false;
+        if (!params()) return false;
+        if (!expectToken(TokenKind::RightParenthesis, "Expected ')'.")) return false;
+        if (!expectToken(TokenKind::LeftBrace, "Expected '{'.")) return false;
+        if (!stmntList()) return false;
+        if (!expectToken(TokenKind::RightBrace, "Expected '}'.")) return false;
         decreaseDebugPrefix();
         std::cout << debugPrefix << "Exiting function rule" << std::endl;
         return true;
@@ -165,16 +126,9 @@ private:
         std::cout << debugPrefix << "Entering params rule" << std::endl;
         increaseDebugPrefix();
         if (isType(currentToken.kind)) {
-            if (!type()) {
-                panicRecoveryForRule({TokenKind::Identifier});
-            }
-            if (!expectToken(TokenKind::Identifier, "Expected parameter name.", {TokenKind::CommaSymbol, TokenKind::RightParenthesis})) {
-                decreaseDebugPrefix();
-                return false;
-            }
-            if (!paramsPrime()) {
-                panicRecoveryForRule({TokenKind::RightParenthesis});
-            }
+            if (!type()) return false;
+            if (!expectToken(TokenKind::Identifier, "Expected parameter name.")) return false;
+            if (!paramsPrime()) return false;
         }
         decreaseDebugPrefix();
         std::cout << debugPrefix << "Exiting params rule" << std::endl;
@@ -184,41 +138,23 @@ private:
     bool paramsPrime() {
         std::cout << debugPrefix << "Entering paramsPrime rule" << std::endl;
         increaseDebugPrefix();
-        while (currentToken.kind == TokenKind::CommaSymbol) {
+        if (currentToken.kind == TokenKind::CommaSymbol) {
             eatToken();
-            if (!type()) {
-                panicRecoveryForRule({TokenKind::Identifier});
-            }
-            if (!expectToken(TokenKind::Identifier, "Expected parameter name.", {TokenKind::CommaSymbol, TokenKind::RightParenthesis})) {
-                decreaseDebugPrefix();
-                return false;
-            }
+            if (!params()) return false;
         }
         decreaseDebugPrefix();
         std::cout << debugPrefix << "Exiting paramsPrime rule" << std::endl;
-        return true;
+        return true; // epsilon
     }
 
     bool varDecl() {
         std::cout << debugPrefix << "Entering varDecl rule" << std::endl;
         increaseDebugPrefix();
-        if (!type()) {
-            panicRecoveryForRule({TokenKind::Identifier});
-        }
-        if (!expectToken(TokenKind::Identifier, "Expected variable name.", {TokenKind::Assign, TokenKind::SemiColonSymbol})) {
-            decreaseDebugPrefix();
-            return false;
-        }
-        if (currentToken.kind == TokenKind::Assign) {
-            eatToken();
-            if (!expression()) {
-                panicRecoveryForRule({TokenKind::SemiColonSymbol});
-            }
-        }
-        if (!expectToken(TokenKind::SemiColonSymbol, "Expected ';' after variable declaration.", {TokenKind::KwFunction, TokenKind::KwInteger, TokenKind::KwBoolean, TokenKind::KwChar, TokenKind::KwString, TokenKind::KwVoid, TokenKind::Eof})) {
-            decreaseDebugPrefix();
-            return false;
-        }
+        if (!type()) return false;
+        if (!expectToken(TokenKind::Identifier, "Expected variable name.")) return false;
+        // Llamamos a typePrime() aquí para manejar cualquier declaración de arreglo después del identificador
+        if (!typePrime()) return false; // Esto manejará los corchetes después del identificador, si los hay
+        if (!varDeclPrime()) return false;
         decreaseDebugPrefix();
         std::cout << debugPrefix << "Exiting varDecl rule" << std::endl;
         return true;
@@ -241,9 +177,7 @@ private:
         std::cout << debugPrefix << "Entering stmntList rule" << std::endl;
         increaseDebugPrefix();
         while (currentToken.kind != TokenKind::RightBrace && currentToken.kind != TokenKind::Eof) {
-            if (!stmnt()) {
-                panicRecoveryForRule({TokenKind::RightBrace, TokenKind::KwIf, TokenKind::KwFor, TokenKind::KwWhile, TokenKind::KwReturn, TokenKind::KwPrint});
-            }
+            if (!stmnt()) return false;
         }
         decreaseDebugPrefix();
         std::cout << debugPrefix << "Exiting stmntList rule" << std::endl;
@@ -261,8 +195,8 @@ private:
             case TokenKind::KwFor:
                 result = forStmnt();
                 break;
-            case TokenKind::KwWhile:
-                result = whileStmnt();
+            case TokenKind::KwWhile: // Añadimos esta línea
+                result = whileStmnt(); // Llamamos a la nueva función para `while`
                 break;
             case TokenKind::KwReturn:
                 result = returnStmnt();
@@ -272,7 +206,7 @@ private:
                 break;
             case TokenKind::LeftBrace:
                 eatToken();
-                result = stmntList() && expectToken(TokenKind::RightBrace, "Expected '}' at end of block.", {TokenKind::KwIf, TokenKind::KwFor, TokenKind::KwWhile, TokenKind::KwReturn, TokenKind::KwPrint, TokenKind::RightBrace});
+                result = stmntList() && expectToken(TokenKind::RightBrace, "Expected '}' at end of block.");
                 break;
             default:
                 if (isType(currentToken.kind)) {

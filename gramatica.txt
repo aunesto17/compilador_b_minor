@@ -10,12 +10,13 @@ Params	→ Type 'identifier' Params’ | ε
 Params’	→ , Params | ε
 StmntList → Stmnt StmntList’
 StmntList’ → Stmnt StmntList’ | ε
-Stmnt → VarDecl	| IfStmnt | ForStmnt | ReturnStmnt | PrintStmnt	| ExprStmnt | { StmntList }
+Stmnt → VarDecl	| IfStmnt | ForStmnt | WhileStmnt | ReturnStmnt | PrintStmnt	| ExprStmnt | { StmntList }
 VarDecl → Type 'identifier' VarDecl’
 VarDecl’ → = Expression ; | ;
 IfStmnt	→ 'If' ( Expression ) { Stmnt } IfStmnt’
 IfStmnt’ → 'else' { Stmnt }	| ε
-ForStmnt → 'for' ( ExprStmnt Expression ; ExprStmnt ) { Stmnt }
+ForStmnt → 'for' ( VarDecl | ExprStmnt Expression ; ExprStmnt ) { Stmnt }
+WhileStmnt → 'while' ( Expression ) { StmntList }
 ReturnStmnt	→ 'return' Expression ;
 PrintStatement → 'print' ( ExprList ) ;
 ExprStmnt → Expression ; | ;

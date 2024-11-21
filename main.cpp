@@ -33,7 +33,7 @@ int main() {
     Lexer lexer(sourceFile);  // Instancia del lexer principal
 
     // Imprimir la lista de tokens del lexer
-    //lexer.printTokens();
+    lexer.printTokens();
 
     // Crear una copia del lexer para usar en el parser
     Lexer lexerCopy = lexer; // Creamos una copia del lexer original

@@ -2,7 +2,7 @@
 #define LEXER_H_
 
 #include <iostream>
-#include <fstream>
+#include <fstream> 
 #include <string>
 #include <unordered_map>
 #include <optional>
@@ -83,6 +83,16 @@ public:
         tokens.push_back(token);
     }
 
+    Token peekToken() {
+        if (tokens.empty()) {
+            return Token{source->path, line, column, TokenKind::Eof};
+        }
+        return tokens.front(); // Devolver el siguiente token sin eliminarlo de la lista
+    }
+
+    void ungetToken(Token token) {
+        tokens.insert(tokens.begin(), token); // Insertar el token al principio de la lista para "devolverlo"
+    }   
     //get tokens in order
     Token getToken() {
         if (tokens.empty()) {
