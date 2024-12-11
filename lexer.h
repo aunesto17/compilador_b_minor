@@ -268,7 +268,7 @@ public:
 
         // Verificar si es una palabra clave
         if (auto it = keywords.find(value); it != keywords.end()) {
-            return Token{tokenStartLocation, it->second};
+            return Token{tokenStartLocation, it->second, std::move(value)};
         }
 
         return Token{tokenStartLocation, TokenKind::Identifier, std::move(value)};

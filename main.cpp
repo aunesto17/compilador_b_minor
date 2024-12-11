@@ -34,6 +34,7 @@ int main() {
 
     // Imprimir la lista de tokens del lexer
     lexer.printTokens();
+    std::cout << "INFO SCAN - Scan completed\n\n";
 
     // Crear una copia del lexer para usar en el parser
     Lexer lexerCopy = lexer; // Creamos una copia del lexer original

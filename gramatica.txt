@@ -5,17 +5,17 @@ Program’ → Declaration Program’ | ε
 Declaration → Function | VarDecl
 Function → 'function' Type 'identifier' ( Params ) { StmntList }  
 Type → 'int' Type’ | 'boolean' Type’ | 'char' Type’ | 'string' Type’ | 'void' Type’
-Type’ → [ ] RBracket Type’ | ε
+Type’ → [ ] Type’ | ε
 Params	→ Type 'identifier' Params’ | ε
 Params’	→ , Params | ε
 StmntList → Stmnt StmntList’
 StmntList’ → Stmnt StmntList’ | ε
-Stmnt → VarDecl	| IfStmnt | ForStmnt | WhileStmnt | ReturnStmnt | PrintStmnt	| ExprStmnt | { StmntList }
+Stmnt → VarDecl	| IfStmnt | ForStmnt | WhileStmnt | ReturnStmnt | PrintStmnt | ExprStmnt | { StmntList }
 VarDecl → Type 'identifier' VarDecl’
 VarDecl’ → = Expression ; | ;
 IfStmnt	→ 'If' ( Expression ) { Stmnt } IfStmnt’
 IfStmnt’ → 'else' { Stmnt }	| ε
-ForStmnt → 'for' ( VarDecl | ExprStmnt Expression ; ExprStmnt ) { Stmnt }
+ForStmnt → 'for' ( ExprStmnt Expression ; ExprStmnt ) { Stmnt }
 WhileStmnt → 'while' ( Expression ) { StmntList }
 ReturnStmnt	→ 'return' Expression ;
 PrintStatement → 'print' ( ExprList ) ;
@@ -26,7 +26,7 @@ Expression → 'identifier' = Expression | OrExpr
 OrExpr → AndExpr OrExpr’
 OrExpr’	→ '||' AndExpr OrExpr’ | ε
 AndExpr	→ EqExpr AndExpr’
-AndExpr’ → 'AND' AndExpr’ | ε
+AndExpr’ → 'AND' EqExpr AndExpr’ | ε
 EqExpr → RelExpr EqExpr’
 EqExpr’ → '==' EqExpr’ | '!=' EqExpr’ | ε
 RelExpr	→ Expr RelExpr’
@@ -39,4 +39,3 @@ Unary → Factor | '-' Unary | '!' Unary
 Factor → 'identifier' FactorId	| 'integer_literal' Factor’ | 'char_literal' Factor’ | 'string_literal' Factor’ | 'false' Factor’ | 'true' Factor’ | ( Expression ) Factor’
 Factor’	→ [ Expression ] Factor’ | ε
 FactorId → ( ExprList ) Factor’
-
